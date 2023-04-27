@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="REPL" type="ClojureREPL" factoryName="Local" activateToolWindowBeforeRun="false" singleton="true">
+    <module name="datomic-realworld-example-app" />
+    <setting name="displayName" value="REPL" />
+    <setting name="replType" value="NREPL" />
+    <setting name="execution" value="INTELLIJ" />
+    <setting name="jvmArgs" value="-XX:-OmitStackTraceInFastThrow -Dclojure.core.async.go-checking=true -Dclojure.main.report=stderr" />
+    <setting name="parameters" value="" />
+    <setting name="workingDir" value="$PROJECT_DIR$" />
+    <setting name="profiles" value="" />
+    <setting name="aliases" value="" />
+    <shortenClasspath name="ARGS_FILE" />
+    <setting name="fixLineNumbers" value="false" />
+    <setting name="focusEditor" value="false" />
+    <method v="2" />
+  </configuration>
+</component>

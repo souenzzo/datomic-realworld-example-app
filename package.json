@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "newman": "newman"
+  },
+  "devDependencies": {
+    "newman": "5.3.2"
+  }
+}
