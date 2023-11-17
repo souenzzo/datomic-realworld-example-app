@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "newman": "newman"
+    "newman": "newman",
+    "ci": "npm --audit=false --ignore-scripts=true --update-notifier=false --fund=false ci"
   },
   "devDependencies": {
     "newman": "5.3.2"

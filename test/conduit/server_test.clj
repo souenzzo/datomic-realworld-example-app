@@ -1,5 +1,6 @@
 (ns conduit.server-test
-  (:require [cheshire.core :as json]
+  (:require [buddy.sign.jwt :as jwt]
+            [cheshire.core :as json]
             [clojure.spec.alpha :as s]
             [clojure.spec.gen.alpha :as gen]
             [clojure.string :as string]
@@ -8,7 +9,7 @@
             [datomic.api :as d]
             [io.pedestal.http :as http]
             [io.pedestal.test :refer [response-for]])
-  (:import (java.time Clock)))
+  (:import (java.time InstantSource)))
 
 (defn create-service
   [{::keys [static-clock?]}]
@@ -21,8 +22,8 @@
          ::server/jwt-secret "00000000-0000-0000-0000-000000000000"
          ::server/schema-db  db-after}
       (merge (when static-clock?
-               {::server/clock (proxy [Clock] []
-                                 (instant [] (.toInstant #inst"1970")))}))
+               {::server/instant-source (reify InstantSource
+                                          (instant [this] (.toInstant #inst"1970")))}))
       server/create-service
       http/create-servlet)))
 
@@ -56,14 +57,12 @@
       ::std-headers merge {"Authorization" (str "Token " token)})))
 
 (def static-clock-jwt-token
-  "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImNvbmR1aXRAbG9jYWxob3N0IiwidXNlcm5hbWUiOiJjb25kdWl0IiwiaWF0IjowLCJleHAiOjEyMDB9.PbdklV45QUqk6ZkECg59rmaSp0CYgGMT-zn4EMG0h_Y")
-
-(comment
   (-> {:email    "conduit@localhost"
        :username "conduit"
-       :iat      0
-       :exp      1200}
-    (buddy.sign.jwt/sign (str (java.util.UUID. 0 0)))))
+       :iat      (.getTime #inst"1970")
+       :exp      (/ (.getTime #inst"1970-01-01T00:20")
+                   1000)}
+    (jwt/sign "00000000-0000-0000-0000-000000000000")))
 
 (deftest endpoints-authentication-flow
   (let [service-map (create-service {::static-clock? true})]
@@ -348,6 +347,9 @@
 
 (comment
   (require '[clojure.java.process :as p])
+  @(p/start {:out :inherit, :err :stdout}
+     "npm" "run" "newman" "--"
+     "run" "-h")
   @(p/start {:out :inherit, :err :stdout}
      "npm" "run" "newman" "--"
      "run"

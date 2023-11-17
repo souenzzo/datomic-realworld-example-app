@@ -10,7 +10,7 @@
             [io.pedestal.log :as log])
   (:import (java.security MessageDigest)
            (java.text Normalizer Normalizer$Form)
-           (java.time Clock Duration Instant)))
+           (java.time Clock Duration Instant InstantSource)))
 
 (set! *warn-on-reflection* true)
 
@@ -306,8 +306,7 @@
 
 (defn get-articles #_#_"/articles" :get
   [{::keys [jwt-params db]
-    :keys  [query-params]
-    :as    req}]
+    :keys  [query-params]}]
   (let [tag (some-> query-params :tag)
         author (some-> query-params :author)
         favorited (some-> query-params :favorited)
@@ -460,7 +459,7 @@
   (assoc (body-params/body-params)
     :name ::json-io
     :leave (fn [{:keys [response] :as ctx}]
-             (if (or (-> response :body nil?)
+             (if (or (not (contains? response :body))
                    (-> response :headers (get "Content-Type")))
                ctx
                (assoc ctx :response
@@ -501,8 +500,8 @@
                 ctx))}))
 
 (defn create-service
-  [{::keys [clock jwt-secret conn]
-    :or    {clock (Clock/systemUTC)}
+  [{::keys [^InstantSource instant-source jwt-secret conn]
+    :or    {instant-source (Clock/systemUTC)}
     :as    env}]
   (-> {::http/routes #{["/articles" :get get-articles
                         :route-name ::get-articles]
@@ -548,7 +547,7 @@
                                   (into [generic-error
                                          (with-env-on-request env
                                            (fn [_context]
-                                             {::now          (Instant/now clock)
+                                             {::now          (.instant instant-source)
                                               ::db           (d/db conn)
                                               ::jwt-duration (Duration/parse "PT20M")
                                               ::jwt-secret   jwt-secret}))
